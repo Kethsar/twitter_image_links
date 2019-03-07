@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Twitter Profile From Image Link
 // @namespace Violentmonkey Scripts
-// @description Ctrl-Click image to open the user's twitter profile in a new tab if the username is set as the link hash
+// @description Middle-Click image to open the user's twitter profile in a new tab if the username is set as the link hash
 // @author Kethsar
 // @match https://pbs.twimg.com/media/*
 // @grant GM_openInTab
@@ -14,11 +14,10 @@
     /*
      * This script is a companion to the twitter and tweetdeck scripts
      * that add allow you to copy image links with the user name
-     * Twitter: https://gist.github.com/Kethsar/03923e3bcad87fb226cc58d391252ed0
-     * Tweetdeck: https://gist.github.com/Kethsar/4dbaf824c31e820ffe9fe8684319dbe2
+     * https://github.com/Kethsar/twitter_image_links
      */
     
-    const LEFT_CLICK = 0;
+    const MIDDLE_CLICK = 1;
     var openTab = null;
     
     function init()
@@ -49,11 +48,10 @@
             {
                 let img = document.getElementsByTagName("img")[0];
                 
-                img.addEventListener("click", function(e){
+                img.addEventListener("mouseup", function(e){
                     // For whatever reason, middle-clicking doesn't fire the event. Left click it is then
-                    if (e.ctrlKey && e.button == LEFT_CLICK)
+                    if (e.button == MIDDLE_CLICK)
                     {
-                        e.preventDefault();
                         openTab("https://twitter.com/" + uname);
                     }
                 });
