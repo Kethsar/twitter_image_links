@@ -22,6 +22,10 @@
     // Set to true to show the Copy "buttons" on tweets with images
     // false to disable
     const SHOW_COPY_BUTTONS = true;
+    
+    // Clicking the Images button for multi-image tweets will copy all image links
+    // false to disable
+    const COPY_ALL = true;
     /***** END CONFIG *****/
     
     const LEFT_CLICK = 0,
@@ -46,8 +50,17 @@
             return;
         }
         
-        createEventListeners();
-        log("Image Grabber loaded");
+        try
+        {
+            log("Readystate before: " + document.readyState)
+            createEventListeners();
+            log("Image Grabber loaded");
+            log("Readystate after: " + document.readyState)
+        }
+        catch(e)
+        {
+            log(e);
+        }
     }
     
     function createEventListeners()
@@ -352,9 +365,14 @@
                 
                 let imgList = e.target.nextElementSibling;
                 if (!imgList.style.visibility)
+                {
                     imgList.style.visibility = "visible";
+                    if (COPY_ALL) multiImageCopy(e.target);
+                }
                 else
+                {
                     imgList.style.visibility = "";
+                }
                 
                 if (imgList.id != "imgList")
                 {
@@ -451,17 +469,62 @@
         }
     }
     
-    function hideOpenImglist(e){
-            if (!e.target.classList.contains("imgLnk"))
+    function multiImageCopy(ele)
+    {
+        while (!ele.classList.contains('tweet') && ele != null)
+        {
+            ele = ele.parentElement;
+        }
+        
+        if (!ele) return;
+        
+        let uname = ele.attributes.getNamedItem("data-screen-name"),
+            images = [],
+            imgEles = ele.getElementsByClassName("js-adaptive-photo");
+        
+        if (uname) uname = uname.value;
+        
+        for (let imge of imgEles)
+        {
+            let link = imge.attributes.getNamedItem("data-image-url").value;
+            if (link)
             {
-                let next = e.target.nextElementSibling;
-                if (!next || !next.classList.contains("imgList"))
-                {
-                    let il = document.getElementById("imgList");
-                    if (il) il.style.visibility = "";
-                }
+                link = link + "?name=orig";
+                images.push(link);
             }
         }
+
+        if (images.length == 1)
+            images[0] = images[0] + "#@" + uname;
+        
+        if (images.length > 0)
+        {
+            let copyTxt = "";
+            for (let i of images)
+            {
+                copyTxt += i + " | ";
+            }
+
+            if (images.length > 1)
+                copyTxt += "twitter: @" + uname;
+
+            copyTxt = copyTxt.replace(/[ |]+$/, "");
+            setClipboard(copyTxt);
+        }
+    }
+    
+    function hideOpenImglist(e)
+    {
+        if (!e.target.classList.contains("imgLnk"))
+        {
+            let next = e.target.nextElementSibling;
+            if (!next || !next.classList.contains("imgList"))
+            {
+                let il = document.getElementById("imgList");
+                if (il) il.style.visibility = "";
+            }
+        }
+    }
     
     init();
 })();
