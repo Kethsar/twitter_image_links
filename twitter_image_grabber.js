@@ -26,13 +26,18 @@
     // Clicking the Images button for multi-image tweets will copy all image links
     // false to disable
     const COPY_ALL = true;
+    
+    // Show when you are not following a user at the top of the tweet
+    // Wait this is outside the original scope of this script WHOOPS
+    const SHOW_NOT_FOLLOW = true;
     /***** END CONFIG *****/
     
     const LEFT_CLICK = 0,
           MIDDLE_CLICK = 1;
     
     var setClipboard = null,
-        log = console.log; // store console.log because for some reason Twitter fucks it after fully loading, at least for me
+        log = console.log, // store console.log because for some reason Twitter fucks it after fully loading, at least for me
+        interval = 0;
     
     function init()
     {
@@ -71,7 +76,7 @@
         if (SHOW_COPY_BUTTONS)
         {
             document.addEventListener("click", hideOpenImglist);
-            document.addEventListener("readystatechange", createThings);
+            interval = setInterval(createThings, 500);
         }
     }
     
@@ -157,6 +162,10 @@
     
     function createThings()
     {
+        if (document.readyState != "complete")
+            return;
+        
+        clearInterval(interval);
         createStyles();
         createStreamObserver();
         createContainerObserver();
@@ -170,7 +179,8 @@
         css.type = "text/css";
         css.innerHTML = ".imgList { position: absolute; z-index: 99; background-color: white; visibility: hidden; }\n" +
                         ".imgLnk { padding: 5px; color: black; display: block; font-size: 14px; }\n" +
-                        ".imgLnk:hover { color:red }";
+                        ".imgLnk:hover { color:red }\n" +
+                        ".not-following { font-size: 12px; color: red; }";
         
         document.head.appendChild(css);
     }
@@ -306,6 +316,9 @@
         for (let t of tweets)
         {
             addCopyButton(t);
+            
+            if (SHOW_NOT_FOLLOW)
+                addNotFollowingText(t);
         }
     }
     
@@ -466,6 +479,21 @@
         {
             e.preventDefault();
             setClipboard(e.target.href);
+        }
+    }
+    
+    function addNotFollowingText(tweet)
+    {
+        let following = tweet.getAttribute("data-you-follow");
+        
+        if (following && following == "false")
+        {
+            let ctx = tweet.getElementsByClassName("context")[0],
+                nfspan = document.createElement("span");
+            
+            nfspan.classList.add("not-following");
+            nfspan.innerHTML = "Not Following";
+            ctx.appendChild(nfspan);
         }
     }
     
