@@ -27,8 +27,7 @@
     // false to disable
     const COPY_ALL = true;
     
-    // Show when you are not following a user at the top of the tweet
-    // Wait this is outside the original scope of this script WHOOPS
+    // Show when you are not following a user by making their name colour red
     const SHOW_NOT_FOLLOW = true;
     /***** END CONFIG *****/
     
@@ -180,7 +179,7 @@
         css.innerHTML = ".imgList { position: absolute; z-index: 99; background-color: white; visibility: hidden; }\n" +
                         ".imgLnk { padding: 5px; color: black; display: block; font-size: 14px; }\n" +
                         ".imgLnk:hover { color:red }\n" +
-                        ".not-following { font-size: 12px; color: red; }";
+                        ".not-following { color: red; }";
         
         document.head.appendChild(css);
     }
@@ -488,12 +487,9 @@
         
         if (following && following == "false")
         {
-            let ctx = tweet.getElementsByClassName("context")[0],
-                nfspan = document.createElement("span");
+            let fname = tweet.getElementsByClassName("fullname")[0];
             
-            nfspan.classList.add("not-following");
-            nfspan.innerHTML = "Not Following";
-            ctx.appendChild(nfspan);
+            fname.classList.add("not-following");
         }
     }
     
