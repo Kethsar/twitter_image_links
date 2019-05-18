@@ -12,6 +12,12 @@
 (function() {
     'use strict';
     
+    /***** CONFIG *****/
+    // Clicking the Images button for multi-image tweets will copy all image links
+    // false to disable
+    const COPY_ALL = true;
+    /***** END CONFIG *****/
+    
     const LEFT_CLICK = 0;
     
     var interval = null,
@@ -193,6 +199,8 @@
                     
                     imgList.id = "imgList";
                 }
+                
+                if (COPY_ALL) multiImageCopy(imgList);
             });
             
             imlDiv.classList.add("imgList");
@@ -286,6 +294,32 @@
                 if (il) il.style.visibility = "";
             }
         }
+    }
+    
+    function multiImageCopy(imgList)
+    {
+        let copyTxt = "",
+            uname = "";
+        
+        for (let n of imgList.childNodes)
+        {
+            let link = n.href;
+            if (link)
+            {
+                copyTxt += link.replace(/#.*/, "") + " | ";
+                
+                if(!uname)
+                {
+                    uname = link.replace(/[^#]+#/, "");
+                }
+            }
+        }
+        
+        if (uname)
+            copyTxt += "twitter: " + uname;
+        
+        copyTxt = copyTxt.replace(/[ |]+$/, "");
+        setClipboard(copyTxt);
     }
     
     init();
