@@ -17,6 +17,7 @@
     // Copies links for all images by default
     // Ctrl+middle-clicking will copy the link only for the image clicked on
     // false to disable
+    // NOT SETUP ON NU-TWITTER
     const USE_MIDDLE_CLICK = true;
     
     // Set to true to show the Copy "buttons" on tweets with images
@@ -29,13 +30,19 @@
     
     // Show when you are not following a user by making their name colour red
     const SHOW_NOT_FOLLOW = true;
+
+    // Set to true if you are using nu-twitter garbage FUCK THIS SHIT
+    // Support is not complete yet because holy fuck is it retarded
+    const RETARDED_TWITTER = true;
     /***** END CONFIG *****/
     
     const LEFT_CLICK = 0,
           MIDDLE_CLICK = 1;
     
     var setClipboard = null,
-        log = console.log, // store console.log because for some reason Twitter fucks it after fully loading, at least for me
+        // store console.log because for some reason Twitter fucks it after fully loading, at least for me
+        // No longer the case on nu-twitter but whatever
+        log = console.log,
         interval = 0;
     
     function init()
@@ -50,16 +57,13 @@
         }
         else
         {
-            console.log("Clipboard setter not found, image grabber disabled");
+            log("Clipboard setter not found, image grabber disabled");
             return;
         }
         
         try
         {
-            log("Readystate before: " + document.readyState)
             createEventListeners();
-            log("Image Grabber loaded");
-            log("Readystate after: " + document.readyState)
         }
         catch(e)
         {
@@ -69,13 +73,24 @@
     
     function createEventListeners()
     {
-        if (USE_MIDDLE_CLICK)
-            document.addEventListener('mousedown', mousedownHandler);
-        
-        if (SHOW_COPY_BUTTONS)
+        if (RETARDED_TWITTER)
         {
-            document.addEventListener("click", hideOpenImglist);
-            interval = setInterval(createThings, 500);
+            if (SHOW_COPY_BUTTONS)
+            {
+                document.addEventListener("click", hideOpenImglist);
+                interval = setInterval(createThingsNu, 500);
+            }
+        }
+        else
+        {
+            if (USE_MIDDLE_CLICK)
+                document.addEventListener('mousedown', mousedownHandler);
+            
+            if (SHOW_COPY_BUTTONS)
+            {
+                document.addEventListener("click", hideOpenImglist);
+                interval = setInterval(createThings, 500);
+            }
         }
     }
     
@@ -114,7 +129,7 @@
                         let link = imge.attributes.getNamedItem("data-image-url").value;
                         if (link)
                         {
-                            link = link + "?name=orig";
+                            link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
                             images.push(link);
                         }
                     }
@@ -170,6 +185,7 @@
         createContainerObserver();
         createPlinkOlayObserver();
         createGalleryObserver();
+        log("Image Grabber loaded");
     }
     
     function createStyles()
@@ -329,11 +345,9 @@
                 uname = tweet.attributes.getNamedItem("data-screen-name"),
                 cBtns = tweet.getElementsByClassName("cimgLnk");
             
-            if (imgEles.length < 1)
-                return;
+            if (imgEles.length < 1) return;
             
-            if (uname)
-                uname = uname.value;
+            if (uname) uname = uname.value;
             
             // this tweet had copy buttons added to it before, and they have persisted
             // However, the event handlers have been wiped. Remove and redo them
@@ -410,11 +424,11 @@
                 if (ele.tagName.toLowerCase() == "div")
                     link = ele.attributes.getNamedItem("data-image-url").value;
                 else if (ele.tagName.toLowerCase() == "img")
-                    link = ele.src.replace(/:[a-zA-Z]{1,10}$/, "");
+                    link = ele.src;
                 
                 if (link)
                 {
-                    link = link + "?name=orig";
+                    link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
                     if (uname)
                         link = link + "#@" + uname;
                     
@@ -435,11 +449,11 @@
             if (ele.tagName.toLowerCase() == "div")
                 link = ele.attributes.getNamedItem("data-image-url").value;
             else if (ele.tagName.toLowerCase() == "img")
-                link = ele.src.replace(/:[a-zA-Z]{1,10}$/, "");
+                link = ele.src;
             
             if (link)
             {
-                link = link + "?name=orig";
+                link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
                 if (uname)
                     link = link + "#@" + uname;
 
@@ -456,7 +470,7 @@
         let btn = document.createElement("a"); // "button", right
         btn.classList.add("cimgLnk");
         btn.href = link;
-        btn.addEventListener("click", imgLnkClick);
+        btn.addEventListener("click", imgLinkClick);
         
         if (num == 0)
         {
@@ -472,7 +486,7 @@
         return btn;
     }
     
-    function imgLnkClick(e)
+    function imgLinkClick(e)
     {
         if (e.button == LEFT_CLICK && !e.ctrlKey)
         {
@@ -492,34 +506,25 @@
             fname.classList.add("not-following");
         }
     }
-    
+        
     function multiImageCopy(ele)
     {
-        while (!ele.classList.contains('tweet') && ele != null)
+        let links = ele.parentElement.getElementsByClassName("imgLnk");
+        
+        if (links.length < 1) return;
+
+        let uname = links[0].href.replace(/.*#/, ""),
+            images = [];
+        
+        for (let img of links)
         {
-            ele = ele.parentElement;
-        }
-        
-        if (!ele) return;
-        
-        let uname = ele.attributes.getNamedItem("data-screen-name"),
-            images = [],
-            imgEles = ele.getElementsByClassName("js-adaptive-photo");
-        
-        if (uname) uname = uname.value;
-        
-        for (let imge of imgEles)
-        {
-            let link = imge.attributes.getNamedItem("data-image-url").value;
+            let link = img.href.replace(/#.*/, "");
             if (link)
-            {
-                link = link + "?name=orig";
                 images.push(link);
-            }
         }
 
-        if (images.length == 1)
-            images[0] = images[0] + "#@" + uname;
+        if (images.length == 1 && uname)
+            images[0] = images[0] + "#" + uname;
         
         if (images.length > 0)
         {
@@ -529,8 +534,8 @@
                 copyTxt += i + " | ";
             }
 
-            if (images.length > 1)
-                copyTxt += "twitter: @" + uname;
+            if (images.length > 1 && uname)
+                copyTxt += "twitter: " + uname;
 
             copyTxt = copyTxt.replace(/[ |]+$/, "");
             setClipboard(copyTxt);
@@ -549,6 +554,319 @@
             }
         }
     }
+
+    /****************************
+     * RETARDED-TWITTER ALTERNATIVE FUNCTIONS
+     ****************************/
+
+    const TWEET_BUTTON_CLASS = "r-1mdbhws";
+    const FOCUSED_TWEET_BUTTON_CLASS = "r-a2tzq0";
+
+    var btnDivClassList = null,
+        imgLinkClassList = null,
+        focusedTweet = false,
+        initialLoad = true;
+    
+    function createThingsNu()
+    {
+        if (document.readyState != "complete")
+            return;
+        
+        let strim = getStrimNu();
+        if (!strim || strim.childElementCount < 2) // arbitrary element count unless I ever find something significant to look for
+            return;
+            
+        clearInterval(interval);
+        createStylesNu();
+        createStreamObserverNu(strim);
+        createMainDivObserverNu();
+        log("Image Grabber loaded");
+    }
+
+    function createStylesNu()
+    {
+        let css = document.createElement("style");
+        css.type = "text/css";
+        css.innerHTML = ".imgList { position: absolute; z-index: 99; background-color: white; visibility: hidden; bottom: 20px; }\n" +
+                        ".copybtn { text-decoration: none; }\n" +
+                        ".copybtn:hover { color: red }\n" +
+                        ".imgLnk { padding: 5px; color: black; display: block; font-size: 14px; }\n" +
+                        ".not-following { color: red; }";
+        
+        document.head.appendChild(css);
+    }
+
+    function createMainDivObserverNu()
+    {
+        let mdObserver = new MutationObserver(mainDivHandlerNu),
+            mainDiv = document.getElementsByTagName("main")[0].children[0];
+        
+        if (!mainDiv) return; // ???
+
+        mdObserver.observe(mainDiv, {childList: true});
+    }
+
+    function mainDivHandlerNu(mlist, obs)
+    {
+        for (let mtn of mlist) {
+            if (mtn.addedNodes.length > 0)
+            {
+                // We are assuming the previous div that contains the tweets was reconstructed
+                setTimeout(createStreamObserverNu, 100);
+                break;
+            }
+        }
+    }
+
+    function getStrimNu()
+    {
+        let strim = null;
+
+        try {
+            let sections = document.getElementsByTagName("section");
+
+            if (sections.length > 1) {
+                strim = sections[0] // section containing tweets
+                    .children[1] // div
+                    .children[0] // div
+                    .children[0]; // div with children being main tweet divs haha fuck twitter for making this a pain in the ass
+            }
+        }
+        catch (e) {
+            // do nothing
+        }
+
+        return strim;
+    }
+    
+    function createStreamObserverNu(strim)
+    {
+        let strimObserver = new MutationObserver(streamObserveHandlerNu);
+    
+        if (!strim) {
+            strim = getStrimNu();
+        }
+
+        // I haven't checked if all pages use the exact same element layout
+        // This is in case they don't and prevents us from trying to observe null
+        if (!strim) {
+            setTimeout(createStreamObserverNu, 1000);
+            return;
+        }
+
+        // Reset the saved class lists used to help with copy button creation
+        btnDivClassList = null;
+        imgLinkClassList = null;
+    
+        // Initial set of tweets are even slower to load than ones added while scrolling
+        // Give them half a second before attempting to add the copy button
+        let delay = 100;
+        if (initialLoad) {
+            delay = 500;
+            initialLoad = false;
+        }
+
+        for (let t of strim.children) setTimeout(addCopyButtonNu, delay, t);
+    
+        strimObserver.observe(strim, {childList: true});
+    }
+
+    function streamObserveHandlerNu(mlist, obs) {
+        if (mlist.length > 0) {
+            for (let mtn of mlist) {
+                for (let an of mtn.addedNodes) {
+                    // Tweets seem to be lazily constructed
+                    // The images are seemingly the last thing to be added
+                    // Sometimes they are not there when we check but are later
+                    // So just delay checking the tweet for a smoll bit
+                    setTimeout(addCopyButtonNu, 100, an);
+                }
+            }
+        }
+    }
+
+    // Can't use classes to find the images anymore because ~~~OBFUSCATION~~~
+    // Find all images in a tweet and return ones with media in the src
+    // Other types like profile images and dumb emoji are not stored under media
+    function getImagesNu(tdiv) {
+        let imgs = tdiv.getElementsByTagName("img"),
+            mediaImages = [];
+        
+        if (imgs.length > 0) {
+            for (let i of imgs) {
+                let src = i.src;
+                let ssrch = src.search(/pbs\.twimg\.com\/media\//i);
+
+                if (ssrch >= 0) {
+                    mediaImages.push(src);
+                }
+            }
+
+            // Images end up in the DOM as 1, 3, 2, 4 when there are 4
+            // Fix the ordering
+            if (mediaImages.length == 4) { // max image count in a tweet
+                let tmp = mediaImages[1];
+                mediaImages[1] = mediaImages[2];
+                mediaImages[2] = tmp;
+            }
+        }
+
+        return mediaImages;
+    }
+
+    function addCopyButtonNu(tweet) {
+        let imgs = getImagesNu(tweet);
+        if (imgs.length < 1) return;
+
+        let actList = tweet.getElementsByClassName(TWEET_BUTTON_CLASS)[0],
+            uname = "";
+        
+        if (!actList) {
+            actList = tweet.getElementsByClassName(FOCUSED_TWEET_BUTTON_CLASS)[0];
+            focusedTweet = true;
+        }
+
+        // Check for a previously added copy button and remove it
+        let oldCBtn = actList.getElementsByClassName("copybtn");
+        if (oldCBtn.length > 0) {
+            let oldDiv = oldCBtn[0].parentElement;
+            if (oldDiv.children.length > 1) oldDiv = oldDiv.parentElement;
+
+            oldDiv.parentElement.removeChild(oldDiv);
+        }
+
+        if (!btnDivClassList || !imgLinkClassList) {
+            // Match the class list of the rest of the tweet buttons
+            btnDivClassList = actList.children[0].classList;
+            // Match the class list of other inner div parts of the tweet buttons, mostly for text colour/styling
+            imgLinkClassList = actList.children[0].children[0].children[0].classList;
+        }
+
+        // Search for user name in the most retarded way possible because it is not in a uniquely identifiable element in any way
+        let spans = tweet.getElementsByTagName("span");
+        for (let s of spans) {
+            if (s.innerText.search(/^@\S+$/) == 0) { // we check from the start so if a match is found it will always be index 0
+                uname = s.innerText.substring(1);
+                break;
+            }
+        }
+
+        let cBtn = createCopyButtonNu(imgs, uname);
+
+        if (focusedTweet)
+            actList.appendChild(cBtn);
+        else
+            actList.insertBefore(cBtn, actList.children[actList.childElementCount - 1]);
+        
+
+        // No idea if classes differ between most tweets and a focusedd tweet, or how much it matters
+        // Just reset the class lists to be safe after having them set for the one tweet
+        if (focusedTweet) {
+            btnDivClassList = null;
+            imgLinkClassList = null;
+            focusedTweet = false;
+        }
+    }
+
+    function createCopyButtonNu(images, uname)
+    {
+        let btnDiv = document.createElement("div");
+        btnDiv.classList = btnDivClassList;
+        
+        if (images.length > 1)
+        {
+            let btn = document.createElement("a"), // "button", right
+                imlDiv = document.createElement("div"),
+                wrapDiv = document.createElement("div");
+            
+            btn.classList = imgLinkClassList;
+            btn.classList.add("copybtn");
+            btn.innerText = "Images";
+            btn.href = "#";
+            btn.addEventListener("click", function(e){
+                e.preventDefault();
+                
+                let imgList = e.target.nextElementSibling;
+                if (!imgList.style.visibility)
+                {
+                    imgList.style.visibility = "visible";
+                    if (COPY_ALL) multiImageCopy(e.target);
+                }
+                else
+                {
+                    imgList.style.visibility = "";
+                }
+                
+                if (imgList.id != "imgList")
+                {
+                    let il = document.getElementById("imgList");
+                    if (il)
+                    {
+                        il.id = "";
+                        il.style.visibility = "";
+                    }
+                    
+                    imgList.id = "imgList";
+                }
+            });
+            
+            imlDiv.classList.add("imgList");
+            wrapDiv.classList = imgLinkClassList;
+            
+            for (let i = 0; i < images.length; i++)
+            {
+                let link = images[i].replace(/\?.*$/, "?format=png&name=4096x4096")
+
+                if (uname)
+                    link = link + "#@" + uname;
+                
+                let a = createBtnForLinkNu(link, i+1);
+                imlDiv.appendChild(a);
+            }
+
+            wrapDiv.appendChild(btn);
+            wrapDiv.appendChild(imlDiv);
+            btnDiv.appendChild(wrapDiv);
+        }
+        else
+        {
+            let link = images[0].replace(/\?.*$/, "?format=png&name=4096x4096")
+
+            if (uname)
+                link = link + "#@" + uname;
+
+            let btn = createBtnForLinkNu(link, 0);
+            btnDiv.appendChild(btn);
+        }
+        
+        return btnDiv;
+    }
+
+    function createBtnForLinkNu(link, num)
+    {
+        let btn = document.createElement("a"); // "button", right
+        btn.href = link;
+        btn.addEventListener("click", imgLinkClick);
+        
+        if (num == 0)
+        {
+            btn.classList = imgLinkClassList;
+            btn.innerText = "Copy";
+        }
+        else
+        {
+            btn.innerText = "Copy " + (num);
+            btn.classList.add("imgLnk");
+        }
+        btn.classList.add("cimgLnk");
+        btn.classList.add("copybtn");
+        
+        return btn;
+    }
+
+    /****************************
+     * END RETARDED-TWITTER
+     ****************************/
     
     init();
 })();
