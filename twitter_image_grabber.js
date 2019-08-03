@@ -129,7 +129,8 @@
                         let link = imge.attributes.getNamedItem("data-image-url").value;
                         if (link)
                         {
-                            link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
+                            let format = link.match(/\.([^?/:]+)[^/]*$/)[1];
+                            link = link.replace(/\.[^/]+$/, "." + format + "?name=orig");
                             images.push(link);
                         }
                     }
@@ -151,8 +152,9 @@
                     
                     if (imgele)
                     {
-                        let src = imgele.src.replace(/:[a-zA-Z]{1,10}$/, "");
-                        images.push(src + "?name=orig#@" + uname);
+                        let format = imgele.src.match(/\.([^?/:]+)[^/]*$/)[1];
+                        let src = imgele.src.replace(/\.[^/]+$/, "." + format + "?name=orig");
+                        images.push(src + "#@" + uname);
                     }
                 }
 
@@ -428,7 +430,8 @@
                 
                 if (link)
                 {
-                    link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
+                    let format = link.match(/\.([^?/:]+)[^/]*$/)[1];
+                    link = link.replace(/\.[^/]+$/, "." + format + "?name=orig");
                     if (uname)
                         link = link + "#@" + uname;
                     
@@ -453,7 +456,8 @@
             
             if (link)
             {
-                link = link.replace(/[.?][^/]+$/, "?format=png&name=4096x4096");
+                let format = link.match(/\.([^?/:]+)[^/]*$/)[1];
+                link = link.replace(/\.[^/]+$/, "." + format + "?name=orig");
                 if (uname)
                     link = link + "#@" + uname;
 
@@ -815,7 +819,8 @@
             
             for (let i = 0; i < images.length; i++)
             {
-                let link = images[i].replace(/\?.*$/, "?format=png&name=4096x4096")
+                let format = images[i].match(/format=([^&]+)/)[1];
+                let link = images[i].replace(/\?.*$/, "." + format + "?name=orig");
 
                 if (uname)
                     link = link + "#@" + uname;
@@ -830,7 +835,8 @@
         }
         else
         {
-            let link = images[0].replace(/\?.*$/, "?format=png&name=4096x4096")
+            let format = images[0].match(/format=([^&]+)/)[1];
+            let link = images[0].replace(/\?.*$/, "." + format + "?name=orig");
 
             if (uname)
                 link = link + "#@" + uname;
