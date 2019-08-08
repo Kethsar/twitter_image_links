@@ -749,6 +749,11 @@
         // Search for user name in the most retarded way possible because it is not in a uniquely identifiable element in any way
         let spans = tweet.getElementsByTagName("span");
         for (let s of spans) {
+            // Apparently if a nick has an icon/emoji in it, it will be split into multiple spans
+            // So if a nick is set as <something><emoji>@<something else> it will find that first
+            // Thankfully the nick spans are within another span, where the user name span is inside a div
+            if (s.parentElement.tagName != "DIV") continue; 
+            
             if (s.innerText.search(/^@\S+$/) == 0) { // we check from the start so if a match is found it will always be index 0
                 uname = s.innerText.substring(1);
                 break;
