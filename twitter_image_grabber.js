@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name Twitter Image Grabber
-// @namespace Violentmonkey Scripts
+// @name Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author Kethsar
+// @version 1.2
 // @match https://twitter.com/*
 // @inject-into auto
 // @grant GM_setClipboard
@@ -32,7 +32,6 @@
     const SHOW_NOT_FOLLOW = true;
 
     // Set to true if you are using nu-twitter garbage FUCK THIS SHIT
-    // Support is not complete yet because holy fuck is it retarded
     const RETARDED_TWITTER = true;
     /***** END CONFIG *****/
     
@@ -565,6 +564,7 @@
 
     const TWEET_BUTTON_CLASS = "r-1mdbhws";
     const FOCUSED_TWEET_BUTTON_CLASS = "r-a2tzq0";
+    const MODAL_BUTTON_CLASS = "r-10m99ii";
 
     var btnDivClassList = null,
         imgLinkClassList = null,
@@ -584,6 +584,7 @@
         createStylesNu();
         createStreamObserverNu(strim);
         createMainDivObserverNu();
+        createModalObserverNu();
         log("Image Grabber loaded");
     }
 
@@ -598,6 +599,75 @@
                         ".not-following { color: red; }";
         
         document.head.appendChild(css);
+    }
+
+    function createModalObserverNu() {
+        let odiv = document.getElementById("react-root").children[0].children[0], // highest level div not just for wrapping, modal div gets put here
+            obs = new MutationObserver(modalHandlerNu);
+    
+        obs.observe(odiv, {childList: true});
+    }
+    
+    function modalHandlerNu(mlist, obs) {
+        for (let mtn of mlist) {
+            for (let an of mtn.addedNodes) {
+                setTimeout(createModalCopyBtnNu, 100, an);
+            }
+        }
+    }
+    
+    function createModalCopyBtnNu(modalDiv) {
+        let modalBtns = modalDiv.getElementsByClassName(MODAL_BUTTON_CLASS);
+        if (modalBtns.length != 1) return; // There should only be one element with the class
+
+        let actList = modalBtns[0];
+        let pnSplit = window.location.pathname.split("/"),
+            imgNum = parseInt(pnSplit[pnSplit.length - 1]) - 1,
+            uname = pnSplit[1];
+
+        let btnDivCList = actList.children[0].classList;
+        let imgLinkCList = actList.children[0].children[0].children[0].classList;
+    
+        let imgs = [modalDiv.getElementsByTagName("img")[imgNum].src];
+        let cBtn = createCopyButtonNu(imgs, uname);
+        cBtn.classList = btnDivCList;
+        cBtn.children[0].classList = imgLinkCList;
+        cBtn.children[0].classList.add("copybtn");
+        cBtn.children[0].id = "modal-copy";
+
+        actList.insertBefore(cBtn, actList.children[actList.childElementCount - 1]);
+
+        let ul = modalDiv.getElementsByTagName("ul");
+        if (ul.length > 0) {
+            let arrowDiv = ul[0].parentElement.nextElementSibling;
+            let outerDiv = ul[0].parentElement.parentElement.parentElement.parentElement; // This will ensure keyup is caught hopefully always
+            arrowDiv.addEventListener("click", modalImageChangeHandlerNu);
+            outerDiv.addEventListener("keyup", modalImageChangeHandlerNu);
+        }
+    }
+
+    function modalImageChangeHandlerNu(e) {
+        setTimeout(setModalLinkNu, 50); // Event fires before window.location changes, so just wait a bit
+    }
+
+    function setModalLinkNu() {
+        let modalCopyBtn = document.getElementById("modal-copy");
+        if (!modalCopyBtn) return;
+
+        let pnSplit = window.location.pathname.split("/"),
+            imgNum = parseInt(pnSplit[pnSplit.length - 1]) - 1,
+            uname = pnSplit[1],
+            imgList = document.getElementsByTagName("ul")[0], // Apparently the ul in the image pop-up modal is the only ul in the document
+            imgs = imgList.getElementsByTagName("img"),
+            image = imgs[imgNum].src;
+
+        let format = image.match(/format=([^&]+)/)[1];
+        let link = image.replace(/\?.*$/, "." + format + "?name=orig");
+
+        if (uname)
+            link = link + "#@" + uname;
+
+        modalCopyBtn.href = link;
     }
 
     function createMainDivObserverNu()
@@ -869,7 +939,6 @@
             btn.innerText = "Copy " + (num);
             btn.classList.add("imgLnk");
         }
-        btn.classList.add("cimgLnk");
         btn.classList.add("copybtn");
         
         return btn;
