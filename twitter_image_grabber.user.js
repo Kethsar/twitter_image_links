@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name Twitter-Image-Grabber
+// @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
-// @author Kethsar
-// @version 1.2
-// @match https://twitter.com/*
+// @author      Kethsar
+// @version     1.2
+// @match       https://twitter.com/*
 // @inject-into auto
-// @grant GM_setClipboard
-// @grant GM.setClipboard
+// @grant       GM_setClipboard
+// @grant       GM.setClipboard
+// @updateURL   https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/twitter_image_grabber.user.js
+// @downloadURL https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/twitter_image_grabber.user.js
 // ==/UserScript==
 
 (function() {

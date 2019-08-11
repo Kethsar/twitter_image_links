@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name Tweetdeck Image Links
-// @namespace Violentmonkey Scripts
+// @name        Tweetdeck-Image-Links
 // @description Add links to the tweetdeck tweets and image modal to copy the image link
-// @author Kethsar
-// @match https://tweetdeck.twitter.com/
+// @author      Kethsar
+// @version     1.0
+// @match       https://tweetdeck.twitter.com/
 // @inject-into auto
-// @grant GM_setClipboard
-// @grant GM.setClipboard
+// @grant       GM_setClipboard
+// @grant       GM.setClipboard
+// @updateURL   https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/tweetdeck_image_links.user.js
+// @downloadURL https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/tweetdeck_image_links.user.js
 // ==/UserScript==
 
 (function() {

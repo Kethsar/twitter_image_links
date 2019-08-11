@@ -1,11 +1,13 @@
 // ==UserScript==
-// @name Twitter Profile From Image Link
-// @namespace Violentmonkey Scripts
+// @name        Twitter-Profile-From-Image-Link
 // @description Middle-Click image to open the user's twitter profile in a new tab if the username is set as the link hash
-// @author Kethsar
-// @match https://pbs.twimg.com/media/*
-// @grant GM_openInTab
-// @grant GM.openInTab
+// @author      Kethsar
+// @version     1.0
+// @match       https://pbs.twimg.com/media/*
+// @grant       GM_openInTab
+// @grant       GM.openInTab
+// @updateURL   https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/twitter_open_profile_from_image.user.js
+// @downloadURL https://raw.githubusercontent.com/Kethsar/twitter_image_links/master/twitter_open_profile_from_image.user.js
 // ==/UserScript==
 
 (function() {
