@@ -2,7 +2,7 @@
 // @name        Tweetdeck-Image-Links
 // @description Add links to the tweetdeck tweets and image modal to copy the image link
 // @author      Kethsar
-// @version     1.0
+// @version     1.1
 // @match       https://tweetdeck.twitter.com/
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -257,7 +257,8 @@
         let nl = document.createElement("a");
         let image = jsme.getElementsByTagName("img")[0];
         let uname = om.getElementsByClassName("username")[0].innerText;
-        let imgsrc = image.src.replace(/:[a-zA-Z]{1,10}$/, "");
+        let format = image.src.match(/format=([^&]+)/)[1];
+        let imgsrc = image.src.replace(/\?.*$/, "." + format);
 
         jsme.insertBefore(nl, flaglink);
         nl.href = imgsrc + "?name=orig#" + uname;
