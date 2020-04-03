@@ -32,9 +32,6 @@
     
     // Show when you are not following a user by making their name colour red
     const SHOW_NOT_FOLLOW = true;
-
-    // Set to true if you are using nu-twitter garbage FUCK THIS SHIT
-    const RETARDED_TWITTER = true;
     /***** END CONFIG *****/
     
     const LEFT_CLICK = 0,
@@ -74,7 +71,8 @@
     
     function createEventListeners()
     {
-        if (RETARDED_TWITTER)
+        let react = document.getElementById("react-root") != null;
+        if (react)
         {
             if (SHOW_COPY_BUTTONS)
             {
@@ -496,6 +494,7 @@
         if (e.button == LEFT_CLICK && !e.ctrlKey)
         {
             e.preventDefault();
+            e.stopPropagation();
             setClipboard(e.target.href);
         }
     }
@@ -571,7 +570,8 @@
     var btnDivClassList = null,
         imgLinkClassList = null,
         focusedTweet = false,
-        initialLoad = true;
+        initialLoad = true,
+        obsNodes = {};
     
     function createThingsNu()
     {
@@ -581,12 +581,13 @@
         let strim = getStrimNu();
         if (!strim || strim.childElementCount < 2) // arbitrary element count unless I ever find something significant to look for
             return;
-            
+        
         clearInterval(interval);
         createStylesNu();
         createStreamObserverNu(strim);
         createMainDivObserverNu();
-        createModalObserverNu();
+        //createModalObserverNu();
+        createRootObserver();
         log("Image Grabber loaded");
     }
 
@@ -602,23 +603,42 @@
         
         document.head.appendChild(css);
     }
-
-    function createModalObserverNu() {
-        let odiv = document.getElementById("react-root").children[0].children[0], // highest level div not just for wrapping, modal div gets put here
-            obs = new MutationObserver(modalHandlerNu);
-    
-        obs.observe(odiv, {childList: true});
+  
+    function createRootObserver() {
+        let root = document.getElementById("react-root"),
+            obs = new MutationObserver(rootHandler);
+      
+        obs.observe(root, {childList: true, subtree: true});
+    }
+  
+    function rootHandler(mlist, obs) {
+        for (let mtn of mlist) {
+            for (let an of mtn.addedNodes) {
+                let modal = an.getElementsByClassName(MODAL_BUTTON_CLASS);
+              
+                if (modal.length == 1) {
+                    obsNodes.modal = an;
+                    let modalObs = new MutationObserver(modalHandlerNu);
+                    modalObs.observe(an, {childList: true, subtree: true});
+                    break;
+                }
+            }
+        }
     }
     
     function modalHandlerNu(mlist, obs) {
         for (let mtn of mlist) {
-            for (let an of mtn.addedNodes) {
-                setTimeout(createModalCopyBtnNu, 100, an);
+            if (mtn.target.getElementsByTagName("img").length > 0 && obsNodes.modal) {
+                createModalCopyBtnNu(obsNodes.modal);
+                obsNodes.modal = null;
+                obs.disconnnect();
+                break;
             }
         }
     }
     
     function createModalCopyBtnNu(modalDiv) {
+        if (document.getElementById("modal-copy")) return; // If we already placed the button, don't bother doing it again.
         let modalBtns = modalDiv.getElementsByClassName(MODAL_BUTTON_CLASS);
         if (modalBtns.length != 1) return; // There should only be one element with the class
 
@@ -629,14 +649,13 @@
 
         let btnDivCList = actList.children[0].classList;
         let imgLinkCList = actList.children[0].children[0].children[0].classList;
-    
         let imgs = [modalDiv.getElementsByTagName("img")[imgNum].src];
+      
         let cBtn = createCopyButtonNu(imgs, uname);
         cBtn.classList = btnDivCList;
         cBtn.children[0].classList = imgLinkCList;
         cBtn.children[0].classList.add("copybtn");
         cBtn.children[0].id = "modal-copy";
-
         actList.insertBefore(cBtn, actList.children[actList.childElementCount - 1]);
 
         let ul = modalDiv.getElementsByTagName("ul");
@@ -704,7 +723,6 @@
             if (sections.length > 1) {
                 strim = sections[0] // section containing tweets
                     .children[1] // div
-                    .children[0] // div
                     .children[0]; // div with children being main tweet divs haha fuck twitter for making this a pain in the ass
             }
         }
@@ -768,19 +786,28 @@
         let imgs = tdiv.getElementsByTagName("img"),
             mediaImages = [];
         
-        if (imgs.length > 0) {
+        if (imgs.length > 0)
+        {
             for (let i of imgs) {
-                let src = i.src;
-                let ssrch = src.search(/pbs\.twimg\.com\/media\//i);
+                let ssrch = -1,
+                    imgAlt = false;
+              
+                if (i.hasAttribute("alt") && i.getAttribute("alt").toLowerCase() == "image")
+                    imgAlt = true;
+                else
+                    ssrch = i.src.search(/pbs\.twimg\.com\/media\//i);
 
-                if (ssrch >= 0) {
-                    mediaImages.push(src);
+                
+                if (imgAlt || ssrch >= 0)
+                {
+                    mediaImages.push(i.src);
                 }
             }
 
             // Images end up in the DOM as 1, 3, 2, 4 when there are 4
             // Fix the ordering
-            if (mediaImages.length == 4) { // max image count in a tweet
+            if (mediaImages.length == 4) // max image count in a tweet
+            { 
                 let tmp = mediaImages[1];
                 mediaImages[1] = mediaImages[2];
                 mediaImages[2] = tmp;
