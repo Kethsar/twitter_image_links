@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.2
+// @version     1.3
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -578,15 +578,8 @@
         if (document.readyState != "complete")
             return;
         
-        let strim = getStrimNu();
-        if (!strim || strim.childElementCount < 2) // arbitrary element count unless I ever find something significant to look for
-            return;
-        
         clearInterval(interval);
         createStylesNu();
-        createStreamObserverNu(strim);
-        createMainDivObserverNu();
-        //createModalObserverNu();
         createRootObserver();
         log("Image Grabber loaded");
     }
@@ -615,12 +608,50 @@
         for (let mtn of mlist) {
             for (let an of mtn.addedNodes) {
                 let modal = an.getElementsByClassName(MODAL_BUTTON_CLASS);
-              
                 if (modal.length == 1) {
                     obsNodes.modal = an;
                     let modalObs = new MutationObserver(modalHandlerNu);
                     modalObs.observe(an, {childList: true, subtree: true});
-                    break;
+                }
+              
+                // I don't even fucking know about the rest of this handler.
+                // It wasn't working, undid changes, redid them slowly checking along the way
+                // Final code result was the same but it was working
+                // Fuck I hate this
+                // God this code is just awful too why does it work
+                
+                // Apparently most things added are divs and images
+                // Sometimes they are within an article, sometimes not
+                // I have no idea when it's which
+                // So just check for articles, cycle through them if they exist attempting to add buttons
+                // If not make sure the element is an image element
+                // since those are one of the commonly added in-article elements
+                // and they come with attributes to make it easy to identify them
+                let artics = an.getElementsByTagName("article");
+                if (artics.length > 0) {
+                    for (let artic of artics)
+                        addCopyButtonNu(artic);
+                  
+                    continue;
+                }
+              
+                let hasImage = false;
+                if (!hasImage)
+                    hasImage = an.hasAttribute("aria-label") && an.getAttribute("aria-label").toLowerCase() == "image";
+                if (!hasImage)
+                    hasImage = an.hasAttribute("alt") && an.getAttribute("alt").toLowerCase() == "image";
+              
+                if (hasImage) {
+                    let parent = an.parentElement;
+        
+                    while (parent) {
+                        if (parent.tagName.toLowerCase() == "article") {
+                            addCopyButtonNu(parent);
+                            break;
+                        }
+
+                        parent = parent.parentElement;
+                    }
                 }
             }
         }
@@ -689,94 +720,6 @@
             link = link + "#@" + uname;
 
         modalCopyBtn.href = link;
-    }
-
-    function createMainDivObserverNu()
-    {
-        let mdObserver = new MutationObserver(mainDivHandlerNu),
-            mainDiv = document.getElementsByTagName("main")[0].children[0];
-        
-        if (!mainDiv) return; // ???
-
-        mdObserver.observe(mainDiv, {childList: true});
-    }
-
-    function mainDivHandlerNu(mlist, obs)
-    {
-        for (let mtn of mlist) {
-            if (mtn.addedNodes.length > 0)
-            {
-                // We are assuming the previous div that contains the tweets was reconstructed
-                setTimeout(createStreamObserverNu, 100);
-                break;
-            }
-        }
-    }
-
-    function getStrimNu()
-    {
-        let strim = null;
-
-        try {
-            let sections = document.getElementsByTagName("section");
-
-            if (sections.length > 1) {
-                strim = sections[0] // section containing tweets
-                    .children[1] // div
-                    .children[0]; // div with children being main tweet divs haha fuck twitter for making this a pain in the ass
-            }
-        }
-        catch (e) {
-            // do nothing
-        }
-
-        return strim;
-    }
-    
-    function createStreamObserverNu(strim)
-    {
-        let strimObserver = new MutationObserver(streamObserveHandlerNu);
-    
-        if (!strim) {
-            strim = getStrimNu();
-        }
-
-        // I haven't checked if all pages use the exact same element layout
-        // This is in case they don't and prevents us from trying to observe null
-        if (!strim) {
-            setTimeout(createStreamObserverNu, 1000);
-            return;
-        }
-
-        // Reset the saved class lists used to help with copy button creation
-        btnDivClassList = null;
-        imgLinkClassList = null;
-    
-        // Initial set of tweets are even slower to load than ones added while scrolling
-        // Give them half a second before attempting to add the copy button
-        let delay = 100;
-        if (initialLoad) {
-            delay = 500;
-            initialLoad = false;
-        }
-
-        for (let t of strim.children) setTimeout(addCopyButtonNu, delay, t);
-    
-        strimObserver.observe(strim, {childList: true});
-    }
-
-    function streamObserveHandlerNu(mlist, obs) {
-        if (mlist.length > 0) {
-            for (let mtn of mlist) {
-                for (let an of mtn.addedNodes) {
-                    // Tweets seem to be lazily constructed
-                    // The images are seemingly the last thing to be added
-                    // Sometimes they are not there when we check but are later
-                    // So just delay checking the tweet for a smoll bit
-                    setTimeout(addCopyButtonNu, 100, an);
-                }
-            }
-        }
     }
 
     // Can't use classes to find the images anymore because ~~~OBFUSCATION~~~
@@ -880,6 +823,7 @@
     {
         let btnDiv = document.createElement("div");
         btnDiv.classList = btnDivClassList;
+        btnDiv.classList.add("copyroot");
         
         if (images.length > 1)
         {
