@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.3
+// @version     1.3.1
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -517,33 +517,18 @@
         
         if (links.length < 1) return;
 
-        let uname = links[0].href.replace(/.*#/, ""),
-            images = [];
+        let copyTxt = "";
         
         for (let img of links)
         {
-            let link = img.href.replace(/#.*/, "");
-            if (link)
-                images.push(link);
-        }
-
-        if (images.length == 1 && uname)
-            images[0] = images[0] + "#" + uname;
-        
-        if (images.length > 0)
-        {
-            let copyTxt = "";
-            for (let i of images)
+            if (img.href)
             {
-                copyTxt += i + " | ";
+                copyTxt += img.href + " | ";
             }
-
-            if (images.length > 1 && uname)
-                copyTxt += "twitter: " + uname;
-
-            copyTxt = copyTxt.replace(/[ |]+$/, "");
-            setClipboard(copyTxt);
         }
+
+        copyTxt = copyTxt.replace(/[ |]+$/, "");
+        setClipboard(copyTxt);
     }
     
     function hideOpenImglist(e)

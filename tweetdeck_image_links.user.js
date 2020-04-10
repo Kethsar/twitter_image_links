@@ -2,7 +2,7 @@
 // @name        Tweetdeck-Image-Links
 // @description Add links to the tweetdeck tweets and image modal to copy the image link
 // @author      Kethsar
-// @version     1.1
+// @version     1.1.1
 // @match       https://tweetdeck.twitter.com/
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -301,25 +301,15 @@
     
     function multiImageCopy(imgList)
     {
-        let copyTxt = "",
-            uname = "";
+        let copyTxt = "";
         
         for (let n of imgList.childNodes)
         {
-            let link = n.href;
-            if (link)
+            if (n.href)
             {
-                copyTxt += link.replace(/#.*/, "") + " | ";
-                
-                if(!uname)
-                {
-                    uname = link.replace(/[^#]+#/, "");
-                }
+                copyTxt += n.href + " | ";
             }
         }
-        
-        if (uname)
-            copyTxt += "twitter: " + uname;
         
         copyTxt = copyTxt.replace(/[ |]+$/, "");
         setClipboard(copyTxt);
