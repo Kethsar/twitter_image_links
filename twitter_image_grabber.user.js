@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.3.1
+// @version     1.3.2
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -514,7 +514,6 @@
     function multiImageCopy(ele)
     {
         let links = ele.parentElement.getElementsByClassName("imgLnk");
-        
         if (links.length < 1) return;
 
         let copyTxt = "";
@@ -522,13 +521,11 @@
         for (let img of links)
         {
             if (img.href)
-            {
-                copyTxt += img.href + " | ";
-            }
+                copyTxt += img.href + " ";
         }
 
-        copyTxt = copyTxt.replace(/[ |]+$/, "");
-        setClipboard(copyTxt);
+        if (copyTxt.length > 0)
+            setClipboard(copyTxt);
     }
     
     function hideOpenImglist(e)

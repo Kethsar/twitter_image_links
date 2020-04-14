@@ -2,7 +2,7 @@
 // @name        Tweetdeck-Image-Links
 // @description Add links to the tweetdeck tweets and image modal to copy the image link
 // @author      Kethsar
-// @version     1.1.1
+// @version     1.1.2
 // @match       https://tweetdeck.twitter.com/
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -306,13 +306,11 @@
         for (let n of imgList.childNodes)
         {
             if (n.href)
-            {
-                copyTxt += n.href + " | ";
-            }
+                copyTxt += n.href + " ";
         }
         
-        copyTxt = copyTxt.replace(/[ |]+$/, "");
-        setClipboard(copyTxt);
+        if (copyTxt.length > 0)
+            setClipboard(copyTxt);
     }
     
     init();
