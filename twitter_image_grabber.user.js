@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.3.2
+// @version     1.3.3
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -38,7 +38,7 @@
           MIDDLE_CLICK = 1;
     
     var setClipboard = null,
-        // store console.log because for some reason Twitter fucks it after fully loading, at least for me
+        // store console.log because for some reason Twitter breaks it after fully loading, at least for me
         // No longer the case on nu-twitter but whatever
         log = console.log,
         interval = 0;
@@ -542,7 +542,7 @@
     }
 
     /****************************
-     * RETARDED-TWITTER ALTERNATIVE FUNCTIONS
+     * REACT-TWITTER ALTERNATIVE FUNCTIONS
      ****************************/
 
     const TWEET_BUTTON_CLASS = "r-1mdbhws";
@@ -599,7 +599,7 @@
                 // I don't even fucking know about the rest of this handler.
                 // It wasn't working, undid changes, redid them slowly checking along the way
                 // Final code result was the same but it was working
-                // Fuck I hate this
+                // I hate this
                 // God this code is just awful too why does it work
                 
                 // Apparently most things added are divs and images
@@ -611,15 +611,14 @@
                 // and they come with attributes to make it easy to identify them
                 let artics = an.getElementsByTagName("article");
                 if (artics.length > 0) {
-                    for (let artic of artics)
-                        addCopyButtonNu(artic);
+                    for (let artic of artics) {
+                        setTimeout(addCopyButtonNu, 250, artic);
+                    }
                   
                     continue;
                 }
               
-                let hasImage = false;
-                if (!hasImage)
-                    hasImage = an.hasAttribute("aria-label") && an.getAttribute("aria-label").toLowerCase() == "image";
+                let hasImage = an.hasAttribute("aria-label") && an.getAttribute("aria-label").toLowerCase() == "image";
                 if (!hasImage)
                     hasImage = an.hasAttribute("alt") && an.getAttribute("alt").toLowerCase() == "image";
               
@@ -628,7 +627,7 @@
         
                     while (parent) {
                         if (parent.tagName.toLowerCase() == "article") {
-                            addCopyButtonNu(parent);
+                            setTimeout(addCopyButtonNu, 250, parent);
                             break;
                         }
 
@@ -704,7 +703,7 @@
         modalCopyBtn.href = link;
     }
 
-    // Can't use classes to find the images anymore because ~~~OBFUSCATION~~~
+    // Can't use classes to find the images anymore because ~~~OBFUSCATION~~~ (thanks React)
     // Find all images in a tweet and return ones with media in the src
     // Other types like profile images and dumb emoji are not stored under media
     function getImagesNu(tdiv) {
@@ -722,7 +721,6 @@
                 else
                     ssrch = i.src.search(/pbs\.twimg\.com\/media\//i);
 
-                
                 if (imgAlt || ssrch >= 0)
                 {
                     mediaImages.push(i.src);
@@ -880,7 +878,7 @@
 
     function createBtnForLinkNu(link, num)
     {
-        let btn = document.createElement("a"); // "button", right
+        let btn = document.createElement("a");
         btn.href = link;
         btn.addEventListener("click", imgLinkClick);
         
@@ -900,7 +898,7 @@
     }
 
     /****************************
-     * END RETARDED-TWITTER
+     * END REACT-TWITTER
      ****************************/
     
     init();
