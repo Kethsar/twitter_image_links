@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.3.3
+// @version     1.3.4
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -587,12 +587,16 @@
     }
   
     function rootHandler(mlist, obs) {
-        for (let mtn of mlist) {
-            for (let an of mtn.addedNodes) {
-                let modal = an.getElementsByClassName(MODAL_BUTTON_CLASS);
+        setTimeout(handleMutations, 500, mlist);
+    }
+    
+    function handleMutations(mlist) {
+        for (const mtn of mlist) {
+            for (const an of mtn.addedNodes) {
+                const modal = an.getElementsByClassName(MODAL_BUTTON_CLASS);
                 if (modal.length == 1) {
                     obsNodes.modal = an;
-                    let modalObs = new MutationObserver(modalHandlerNu);
+                    const modalObs = new MutationObserver(modalHandlerNu);
                     modalObs.observe(an, {childList: true, subtree: true});
                 }
               
@@ -609,10 +613,10 @@
                 // If not make sure the element is an image element
                 // since those are one of the commonly added in-article elements
                 // and they come with attributes to make it easy to identify them
-                let artics = an.getElementsByTagName("article");
+                const artics = an.getElementsByTagName("article");
                 if (artics.length > 0) {
-                    for (let artic of artics) {
-                        setTimeout(addCopyButtonNu, 250, artic);
+                    for (const artic of artics) {
+                        addCopyButtonNu(artic);
                     }
                   
                     continue;
@@ -627,7 +631,7 @@
         
                     while (parent) {
                         if (parent.tagName.toLowerCase() == "article") {
-                            setTimeout(addCopyButtonNu, 250, parent);
+                            addCopyButtonNu(parent);
                             break;
                         }
 
