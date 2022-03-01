@@ -72,18 +72,16 @@
         
     function multiImageCopy(ele)
     {
-        let links = ele.parentElement.getElementsByClassName("imgLnk");
+        let links = Array.from(ele.parentElement.getElementsByClassName("imgLnk"));
         if (links.length < 1) return;
 
         let copyTxt = "";
-        
-        for (let img of links)
-        {
+        links.forEach(img => {
             if (img.href)
                 copyTxt += img.href + " ";
-        }
-
-        if (copyTxt.length > 0)
+        });
+        
+        if (copyTxt)
             setClipboard(copyTxt);
     }
     
