@@ -292,9 +292,10 @@
             
             if (s.innerText.search(/^@\S+$/) == 0) { // we check from the start so if a match is found it will always be index 0
                 uname = s.innerText.substring(1);
-                log('uname found');
                 return false;
             }
+            
+            return true;
         });
         const cBtn = createCopyButtonNu(imgs, uname);
 
