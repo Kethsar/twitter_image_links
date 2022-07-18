@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.1
+// @version     1.4.2
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -263,7 +263,8 @@
         const imgs = getImagesNu(tweet);
         if (imgs.length < 1) return;
 
-        const actList = tweet.querySelector('[role="group"]');
+        let actList = tweet.querySelector('[id][role="group"]');
+        if (!actList) actList = tweet.querySelector('[role="group"]');
         let uname = "";
 
         // Check for a previously added copy button and remove it
