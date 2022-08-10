@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.2
+// @version     1.4.3
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -246,15 +246,6 @@
                 images.push(img.src);
             }
         });
-
-        // Images end up in the DOM as 1, 3, 2, 4 when there are 4
-        // Fix the ordering
-        if (images.length == 4) // max image count in a tweet
-        { 
-            const tmp = images[1];
-            images[1] = images[2];
-            images[2] = tmp;
-        }
 
         return images;
     }
