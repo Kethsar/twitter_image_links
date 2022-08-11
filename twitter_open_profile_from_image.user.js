@@ -51,7 +51,6 @@
                 let img = document.getElementsByTagName("img")[0];
                 
                 img.addEventListener("mouseup", function(e){
-                    // For whatever reason, middle-clicking doesn't fire the event. Left click it is then
                     if (e.button == MIDDLE_CLICK)
                     {
                         openTab("https://twitter.com/" + uname);
