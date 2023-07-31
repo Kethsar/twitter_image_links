@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.4
+// @version     1.4.5
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -192,17 +192,7 @@
         setTimeout(setModalLinkNu, 50); // Event fires before window.location changes, so just wait a bit
     }
 
-    function setModalLinkNu() {
-        const modalCopyBtn = document.getElementById("modal-copy");
-        if (!modalCopyBtn) return;
-
-        const pnSplit = window.location.pathname.split("/"),
-            imgNum = parseInt(pnSplit[pnSplit.length - 1]) - 1,
-            uname = pnSplit[1],
-            imgList = document.getElementsByTagName("ul")[0], // Apparently the ul in the image pop-up modal is the only ul in the document
-            imgs = imgList.getElementsByTagName("img"),
-            image = imgs[imgNum].src;
-
+    function makeLinkFromImage(image, uname) {
         const format = image.match(/format=([^&]+)/)[1];
         let link = image;
         if (format.toLowerCase() === "webp") {
@@ -214,6 +204,21 @@
         if (uname) {
             link = `${link}#@${uname}`;
         }
+
+        return link;
+    }
+
+    function setModalLinkNu() {
+        const modalCopyBtn = document.getElementById("modal-copy");
+        if (!modalCopyBtn) return;
+
+        const pnSplit = window.location.pathname.split("/"),
+            imgNum = parseInt(pnSplit[pnSplit.length - 1]) - 1,
+            uname = pnSplit[1],
+            imgList = document.getElementsByTagName("ul")[0], // Apparently the ul in the image pop-up modal is the only ul in the document
+            imgs = imgList.getElementsByTagName("img"),
+            image = imgs[imgNum].src;
+        const link = makeLinkFromImage(image, uname);
 
         modalCopyBtn.href = link;
     }
@@ -348,11 +353,7 @@
             
             for (let i = 0; i < images.length; i++)
             {
-                const format = images[i].match(/format=([^&]+)/)[1];
-                let link = images[i].replace(/\?.*$/, "." + format + "?name=orig");
-
-                if (uname)
-                    link = link + "#@" + uname;
+                const link = makeLinkFromImage(images[1], uname);
                 
                 const a = createBtnForLinkNu(link, i+1);
                 imlDiv.appendChild(a);
@@ -364,11 +365,7 @@
         }
         else
         {
-            const format = images[0].match(/format=([^&]+)/)[1];
-            let link = images[0].replace(/\?.*$/, "." + format + "?name=orig");
-
-            if (uname)
-                link = link + "#@" + uname;
+            const link = makeLinkFromImage(images[0], uname);
 
             const btn = createBtnForLinkNu(link, 0);
             btnDiv.appendChild(btn);
