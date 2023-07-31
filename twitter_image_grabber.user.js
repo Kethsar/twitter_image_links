@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.3
+// @version     1.4.4
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -204,10 +204,16 @@
             image = imgs[imgNum].src;
 
         const format = image.match(/format=([^&]+)/)[1];
-        let link = image.replace(/\?.*$/, "." + format + "?name=orig");
+        let link = image;
+        if (format.toLowerCase() === "webp") {
+            link = `${link}&name=4096x4096`;
+        } else {
+            link = `${link}&name=orig`;
+        }
 
-        if (uname)
-            link = link + "#@" + uname;
+        if (uname) {
+            link = `${link}#@${uname}`;
+        }
 
         modalCopyBtn.href = link;
     }
