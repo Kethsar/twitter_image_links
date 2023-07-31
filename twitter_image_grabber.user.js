@@ -194,7 +194,7 @@
 
     function makeLinkFromImage(image, uname) {
         const format = image.match(/format=([^&]+)/)[1];
-        let link = image;
+        let link = image.replace(/\?.*$/, `?format=${format}`);
         if (format.toLowerCase() === "webp") {
             link = `${link}&name=4096x4096`;
         } else {
