@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.6
+// @version     1.4.7
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -353,7 +353,7 @@
             
             for (let i = 0; i < images.length; i++)
             {
-                const link = makeLinkFromImage(images[1], uname);
+                const link = makeLinkFromImage(images[i], uname);
                 
                 const a = createBtnForLinkNu(link, i+1);
                 imlDiv.appendChild(a);
