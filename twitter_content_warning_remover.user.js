@@ -2,7 +2,7 @@
 // @name        Twitter Content Warning Removal
 // @description Remove the retarded content warning shit from media
 // @author      Kethsar
-// @version     1.2
+// @version     1.3
 // @match       https://twitter.com/*
 // @match       https://x.com/*
 // @inject-into auto
@@ -14,7 +14,7 @@
     'use strict';
 
     // Liable to break
-    const contentWarnClass = '.r-1cmwbt1, .r-drfeu3',
+    const contentWarnElement = '.r-yfv4eo + div',
           blurClass = '.r-yfv4eo';
     let interval = 0;
 
@@ -43,7 +43,7 @@
     function createStyle()
     {
         const css = document.createElement("style");
-        css.innerHTML = `${blurClass} { filter: none !important; } ${contentWarnClass} { display: none !important; }`;
+        css.innerHTML = `${blurClass} { filter: none !important; } ${contentWarnElement} { display: none !important; }`;
         document.head.appendChild(css);
     }
 
