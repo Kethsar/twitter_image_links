@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.8
+// @version     1.4.9
 // @match       https://twitter.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
@@ -292,14 +292,9 @@
             customCSS.innerHTML += `.copybtn { color: ${imgLinkColor}; }`
         }
 
-        // Search for user name in the most retarded way possible because it is not in a uniquely identifiable element in any way
-        const spans = Array.from(tweet.getElementsByTagName("span"));
+        const userNameEle = tweet.querySelector('[data-testid="User-Name"]');
+        const spans = Array.from(userNameEle.children[1].getElementsByTagName("span"));
         spans.every(s => {
-            // Apparently if a nick has an icon/emoji in it, it will be split into multiple spans
-            // So if a nick is set as <something><emoji>@<something else> it will find that first
-            // Thankfully the nick spans are within another span, where the user name span is inside a div
-            if (s.parentElement.tagName != "DIV") return true;
-
             if (s.innerText.search(/^@\S+$/) == 0) { // we check from the start so if a match is found it will always be index 0
                 uname = s.innerText.substring(1);
                 return false;
