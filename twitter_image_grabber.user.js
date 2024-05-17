@@ -2,8 +2,9 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.4.9
+// @version     1.5.0
 // @match       https://twitter.com/*
+// @match       https://x.com/*
 // @inject-into auto
 // @grant       GM_setClipboard
 // @grant       GM.setClipboard
