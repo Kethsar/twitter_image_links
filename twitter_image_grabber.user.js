@@ -2,7 +2,7 @@
 // @name        Twitter-Image-Grabber
 // @description Easier copying of image links in tweets, with user for source
 // @author      Kethsar
-// @version     1.5.0
+// @version     1.5.1
 // @match       https://twitter.com/*
 // @match       https://x.com/*
 // @inject-into auto
@@ -162,7 +162,12 @@
     }
 
     function createModalCopyBtnNu(modalDiv) {
-        if (document.getElementById("modal-copy")) return; // If we already placed the button, don't bother doing it again.
+        const modalBtn = document.getElementById("modal-copy");
+        // If we already placed the button, remove it and re-create it.
+        if (modalBtn) {
+            modalBtn.parentElement.remove();
+        }
+
         const actList = modalDiv.querySelector('[role="group"][aria-label]');
         if (!actList) return;
 
@@ -189,6 +194,30 @@
             outerDiv.addEventListener("keyup", modalImageChangeHandlerNu);
         }
 
+        // Set up handling opening another image modal from an open modal
+        let curParent = actList;
+        for (let i = 0; i < 8; i++) {
+            curParent = curParent.parentElement;
+            if (!curParent) break;
+            if (curParent.style?.transitionDuration) {
+                const obs = new MutationObserver((mlist, obs) => {
+                    mlist.forEach(mtn => {
+                        if (mtn.addedNodes.length) {
+                            const modal = document.querySelector('[aria-modal]');
+                            if (modal) {
+                                const images = modal.querySelectorAll('[src*="/media/"]');
+                                if (images) {
+                                    setTimeout(createModalCopyBtnNu, 50, modal);
+                                }
+                            }
+                        }
+                    })
+                });
+
+                obs.observe(curParent, {childList: true});
+                break;
+            }
+        }
     }
 
     function modalImageChangeHandlerNu(e) {
@@ -211,14 +240,14 @@
         return link;
     }
 
-    function setModalLinkNu() {
+    function setModalLinkNu(imgModal) {
         const modalCopyBtn = document.getElementById("modal-copy");
         if (!modalCopyBtn) return;
 
         const pnSplit = window.location.pathname.split("/"),
             imgNum = parseInt(pnSplit[pnSplit.length - 1]) - 1,
             uname = pnSplit[1],
-            imgList = document.getElementsByTagName("ul")[0], // Apparently the ul in the image pop-up modal is the only ul in the document
+            imgList = imgModal ? imgModal : document.getElementsByTagName("ul")[0], // The ul in the image pop-up modal is the first ul in the document, if there are multiple images
             imgs = imgList.getElementsByTagName("img"),
             image = imgs[imgNum].src;
         const link = makeLinkFromImage(image, uname);
